@@ -1,0 +1,323 @@
+/* ============================================================
+   index.css — Global styles for terminal-grid
+   Colour palette: Catppuccin Mocha (dark, low-eye-strain)
+   ============================================================ */
+
+/* ── Reset ──────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ── Design tokens ──────────────────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --bg-base:    #1e1e2e; /* terminal background */
+  --bg-mantle:  #181825; /* panel header / surface */
+  --bg-crust:   #11111b; /* toolbar */
+  --bg-surface: #313244; /* borders, badges */
+
+  /* Text */
+  --text:       #cdd6f4;
+  --text-muted: #6c7086;
+
+  /* Accent colours */
+  --blue:   #89b4fa;
+  --green:  #a6e3a1;
+  --yellow: #f9e2af;
+  --orange: #fab387;
+  --red:    #f38ba8;
+
+  /* Misc */
+  --radius: 6px;
+  --header-height: 34px;
+  --toolbar-height: 44px;
+  --handle-size: 5px;
+}
+
+/* ── Base ───────────────────────────────────────────────────── */
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-base);
+  color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── App shell ──────────────────────────────────────────────── */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Toolbar ────────────────────────────────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  height: var(--toolbar-height);
+  background: var(--bg-crust);
+  border-bottom: 1px solid var(--bg-surface);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.app-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--blue);
+  letter-spacing: 0.04em;
+  margin-right: auto; /* push everything else to the right */
+}
+
+/* ── Toolbar buttons (shared) ────────────────────────────────── */
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  border-radius: var(--radius);
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+/* Primary: add terminal */
+.btn-add {
+  background: var(--blue);
+  color: var(--bg-crust);
+}
+
+/* Secondary: direction toggle */
+.btn-direction {
+  background: var(--bg-surface);
+  color: var(--text);
+}
+
+.panel-counter {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  min-width: 36px;
+  text-align: right;
+}
+
+/* ── Layout manager ──────────────────────────────────────────── */
+.layout-manager {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Empty state ─────────────────────────────────────────────── */
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  color: var(--text-muted);
+}
+
+.empty-state p {
+  font-size: 1rem;
+}
+
+.empty-state .btn-cta {
+  border: none;
+  border-radius: var(--radius);
+  padding: 10px 22px;
+  background: var(--blue);
+  color: var(--bg-crust);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.empty-state .btn-cta:hover {
+  opacity: 0.85;
+}
+
+/* ── Panel group (react-resizable-panels) ────────────────────── */
+/*
+  The PanelGroup component renders a div that needs to fill the remaining
+  space after the toolbar.  We set height: 100% and let react-resizable-panels
+  manage the rest.
+*/
+.panel-group {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Every Panel div must stretch its single child (terminal or nested PanelGroup) */
+[data-panel] {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Resize handle ───────────────────────────────────────────── */
+.resize-handle {
+  /* Horizontal layout → vertical bar between panels */
+  flex-shrink: 0;
+  background: var(--bg-surface);
+  transition: background 0.15s;
+  position: relative;
+}
+
+/* Horizontal split: thin vertical bar */
+[data-panel-group-direction="horizontal"] > .resize-handle {
+  width: var(--handle-size);
+  cursor: col-resize;
+}
+
+/* Vertical split: thin horizontal bar */
+[data-panel-group-direction="vertical"] > .resize-handle {
+  height: var(--handle-size);
+  cursor: row-resize;
+}
+
+.resize-handle:hover,
+.resize-handle[data-resize-handle-active] {
+  background: var(--blue);
+}
+
+/* ── Terminal panel ──────────────────────────────────────────── */
+.terminal-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-base);
+  overflow: hidden;
+}
+
+/* ── Panel header ────────────────────────────────────────────── */
+.terminal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  height: var(--header-height);
+  background: var(--bg-mantle);
+  border-bottom: 1px solid var(--bg-surface);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+/* Shell name badge (e.g. "bash", "cmd.exe") */
+.shell-badge {
+  font-size: 0.72rem;
+  font-family: "Menlo", "Monaco", "Courier New", monospace;
+  background: var(--bg-surface);
+  color: var(--blue);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-right: auto; /* push status + close to the right */
+}
+
+/* Connection status indicator dot */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+
+.status-connecting { background: var(--orange); }
+.status-open       { background: var(--green); }
+.status-closed     { background: var(--text-muted); }
+.status-error      { background: var(--red); }
+
+/* Split and close buttons share base styles */
+.split-btn,
+.close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.split-btn:hover {
+  background: var(--bg-surface);
+  color: var(--blue);
+}
+
+.close-btn:hover {
+  background: var(--bg-surface);
+  color: var(--red);
+}
+
+/* ── xterm.js container ──────────────────────────────────────── */
+/*
+  .terminal-body must fill the remaining height of .terminal-panel after the
+  header.  min-height: 0 is required so that flexbox doesn't let it overflow.
+*/
+.terminal-body {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* xterm.js internal overrides */
+.xterm {
+  height: 100%;
+  width: 100%;
+}
+
+.xterm-viewport {
+  /* Match the terminal background so the scrollbar area doesn't flash */
+  background-color: var(--bg-base) !important;
+}
+
+/* ── Scrollbar (WebKit) ──────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-surface);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}

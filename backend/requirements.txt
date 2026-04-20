@@ -1,0 +1,10 @@
+# ── Web framework ────────────────────────────────────────────────────────────
+fastapi>=0.111.0
+pydantic-settings>=2.2.0
+uvicorn[standard]>=0.29.0          # ASGI server (includes websockets extra)
+websockets>=12.0                   # WebSocket transport for uvicorn
+
+# ── PTY (platform-specific) ──────────────────────────────────────────────────
+# ptyprocess is Unix-only; pywinpty provides an equivalent on Windows.
+ptyprocess>=0.7.0; sys_platform != "win32"
+pywinpty>=2.0.13; sys_platform == "win32"

@@ -1,0 +1,38 @@
+<!doctype html>
+<!--
+  index.html — Vite entry point.
+
+  Vite injects the compiled JS/CSS bundles at build time by replacing the
+  <script type="module"> tag.  During development it serves this file as-is
+  and relies on native ES module imports.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Prevent browser auto-translation (terminal output is raw bytes) -->
+    <meta name="google" content="notranslate" />
+
+    <title>terminal-grid</title>
+
+    <!--
+      Favicon: a simple terminal emoji rendered inline so the app works
+      without any image assets.
+    -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⬛</text></svg>"
+    />
+  </head>
+  <body>
+    <!--
+      React mounts here.  The div has no styles — all layout is handled by
+      the React component tree and index.css.
+    -->
+    <div id="root"></div>
+
+    <!-- Vite resolves this to the compiled bundle in production -->
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
