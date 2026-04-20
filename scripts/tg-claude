@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# tg-claude — registra este terminal con nombre, rol y cwd, luego arranca claude
+
+if [ -z "$TERMINAL_GRID_SESSION_ID" ]; then
+    echo "[tg-claude] TERMINAL_GRID_SESSION_ID not set. Running claude without registration."
+    exec claude "$@"
+fi
+
+DEFAULT_NAME=$(basename "$PWD")
+GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+DEFAULT_ROLE=$( [ "$GIT_ROOT" = "$PWD" ] && echo "orchestrator" || echo "agent" )
+
+read -r -p "[tg-claude] Session name [$DEFAULT_NAME]: " INPUT_NAME
+AGENT_NAME="${INPUT_NAME:-$DEFAULT_NAME}"
+
+read -r -p "[tg-claude] Role (orchestrator/agent) [$DEFAULT_ROLE]: " INPUT_ROLE
+case "${INPUT_ROLE:-$DEFAULT_ROLE}" in
+    orchestrator|agent) AGENT_ROLE="${INPUT_ROLE:-$DEFAULT_ROLE}" ;;
+    *) AGENT_ROLE="$DEFAULT_ROLE" ;;
+esac
+
+# ── Progress bar ──────────────────────────────────────────────────────────────
+
+draw_bar() {
+    local pct=$1 width=36
+    local filled=$(( pct * width / 100 ))
+    local empty=$(( width - filled ))
+    local bar=""
+    for ((i=0; i<filled; i++)); do bar+="█"; done
+    for ((i=0; i<empty;  i++)); do bar+="░"; done
+    printf "\r[%s] %3d%%" "$bar" "$pct"
+}
+
+BODY="{\"name\":\"$AGENT_NAME\",\"role\":\"$AGENT_ROLE\",\"cwd\":\"$PWD\"}"
+
+# Register in background
+curl -sf -X POST "http://localhost:8000/sessions/$TERMINAL_GRID_SESSION_ID/name" \
+    -H "Content-Type: application/json" \
+    -d "$BODY" >/dev/null 2>&1 &
+CURL_PID=$!
+
+# Animate 0 → 90 while curl runs
+p=0
+while kill -0 "$CURL_PID" 2>/dev/null && [ "$p" -lt 90 ]; do
+    draw_bar "$p"
+    sleep 0.025
+    p=$(( p + 1 ))
+done
+
+# Wait for curl to finish, fill to 100
+wait "$CURL_PID"
+while [ "$p" -le 100 ]; do
+    draw_bar "$p"
+    sleep 0.01
+    p=$(( p + 1 ))
+done
+
+echo ""
+echo "[tg-claude] Registered as '$AGENT_NAME' ($AGENT_ROLE)"
+exec claude "$@"

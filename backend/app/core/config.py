@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     # Replay ring-buffer cap (bytes)
     pty_buffer_limit: int = 65536
 
+    # Working directory for new terminal sessions; empty = inherit from server process
+    start_dir: str = ""
+
     @field_validator("log_level", mode="before")
     @classmethod
     def _upper_level(cls, v: object) -> object:

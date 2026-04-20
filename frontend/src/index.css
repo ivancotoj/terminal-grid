@@ -242,6 +242,85 @@ body,
   margin-right: auto; /* push status + close to the right */
 }
 
+/* Inject notification badge — shown for 3 s after an external agent sends input */
+.inject-badge {
+  font-size: 0.68rem;
+  font-family: "Menlo", "Monaco", "Courier New", monospace;
+  background: var(--yellow);
+  color: var(--bg-crust);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 700;
+  animation: inject-fade 3s forwards;
+}
+
+@keyframes inject-fade {
+  0%   { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Role badge (ORCH / AGENT) */
+.role-badge {
+  font-size: 0.62rem;
+  font-family: "Menlo", "Monaco", "Courier New", monospace;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.role-orchestrator {
+  background: var(--blue);
+  color: var(--bg-crust);
+}
+
+.role-agent {
+  background: var(--bg-surface);
+  color: var(--text-muted);
+}
+
+/* Agent status bar — shown below header on orchestrator panels */
+.agent-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  height: 26px;
+  background: var(--bg-crust);
+  border-bottom: 1px solid var(--bg-surface);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.agent-bar-label {
+  font-size: 0.62rem;
+  font-family: "Menlo", "Monaco", "Courier New", monospace;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  margin-right: 2px;
+  flex-shrink: 0;
+}
+
+.agent-bar-empty {
+  font-size: 0.62rem;
+  font-family: "Menlo", "Monaco", "Courier New", monospace;
+  color: var(--bg-surface);
+  font-style: italic;
+}
+
+.agent-pill {
+  font-size: 0.62rem;
+  font-family: "Menlo", "Monaco", "Courier New", monospace;
+  background: var(--bg-surface);
+  color: var(--green);
+  padding: 1px 7px;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* Connection status indicator dot */
 .status-dot {
   width: 8px;
@@ -299,25 +378,23 @@ body,
 }
 
 .xterm-viewport {
-  /* Match the terminal background so the scrollbar area doesn't flash */
   background-color: var(--bg-base) !important;
+  scrollbar-width: none !important;
+  overflow-y: scroll !important;
 }
 
-/* ── Scrollbar (WebKit) ──────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+.xterm-viewport::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--bg-base);
+/* ── Global scrollbar — oculto pero funcional ───────────────── */
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--bg-surface);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+* {
+  scrollbar-width: none !important;
 }

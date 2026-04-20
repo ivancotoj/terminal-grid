@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import { TerminalPanel } from "./TerminalPanel";
 
@@ -9,6 +9,9 @@ import { TerminalPanel } from "./TerminalPanel";
 const API_BASE = "http://localhost:8000";
 const MAX_PANELS = 8;
 
+let _nodeIdCounter = 0;
+const newNodeId = () => `node-${++_nodeIdCounter}`;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
@@ -18,8 +21,8 @@ const MAX_PANELS = 8;
  * A container node holds two or more children arranged in a direction.
  */
 type LayoutNode =
-  | { type: "leaf"; sessionId: string; shell: string }
-  | { type: "container"; direction: "horizontal" | "vertical"; children: LayoutNode[] };
+  | { type: "leaf"; id: string; sessionId: string; shell: string }
+  | { type: "container"; id: string; direction: "horizontal" | "vertical"; children: LayoutNode[] };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Tree helpers
@@ -64,6 +67,7 @@ function splitLeaf(
         // The `child` reference is reused — React sees the same object, no remount.
         newChildren.push({
           type: "container",
+          id: newNodeId(),
           direction,
           children: [child, newLeaf],
         });
@@ -121,7 +125,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({ node, onSplit, onClose }) => {
   return (
     <PanelGroup direction={node.direction} className="panel-group">
       {node.children.map((child, index) => (
-        <React.Fragment key={child.type === "leaf" ? child.sessionId : `container-${index}`}>
+        <React.Fragment key={child.id}>
           {index > 0 && (
             <PanelResizeHandle className="resize-handle" />
           )}
@@ -144,6 +148,16 @@ export const LayoutManager: React.FC = () => {
 
   const totalPanels = root ? countLeaves(root) : 0;
   const canAddPanel = totalPanels < MAX_PANELS && !creating;
+
+  useEffect(() => {
+    if (totalPanels === 0) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [totalPanels]);
 
   // ── Actions ───────────────────────────────────────────────────────────────
 
@@ -169,17 +183,17 @@ export const LayoutManager: React.FC = () => {
     setCreating(true);
     const session = await createSession();
     if (session) {
-      const leaf: LayoutNode = { type: "leaf", sessionId: session.sessionId, shell: session.shell };
+      const leaf: LayoutNode = { type: "leaf", id: session.sessionId, sessionId: session.sessionId, shell: session.shell };
       setRoot((prev) => {
         if (prev === null) {
-          return { type: "container", direction: "horizontal", children: [leaf] };
+          return { type: "container", id: newNodeId(), direction: "horizontal", children: [leaf] };
         }
         // Root is always a container — just append the new leaf
         if (prev.type === "container") {
           return { ...prev, children: [...prev.children, leaf] };
         }
         // Should never happen, but handle defensively
-        return { type: "container", direction: "horizontal", children: [prev, leaf] };
+        return { type: "container", id: newNodeId(), direction: "horizontal", children: [prev, leaf] };
       });
     }
     setCreating(false);
@@ -195,7 +209,7 @@ export const LayoutManager: React.FC = () => {
       setCreating(true);
       const session = await createSession();
       if (session) {
-        const newLeaf: LayoutNode = { type: "leaf", ...session };
+        const newLeaf: LayoutNode = { type: "leaf", id: session.sessionId, ...session };
         setRoot((prev) =>
           prev ? splitLeaf(prev, sessionId, direction, newLeaf) : prev
         );
@@ -213,7 +227,7 @@ export const LayoutManager: React.FC = () => {
       // Keep root as a container so future addPanel never rewraps a leaf
       if (next === null) return null;
       if (next.type === "leaf") {
-        return { type: "container", direction: "horizontal", children: [next] };
+        return { type: "container", id: newNodeId(), direction: "horizontal", children: [next] };
       }
       return next;
     });

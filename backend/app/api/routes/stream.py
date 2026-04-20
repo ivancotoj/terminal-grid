@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 
 from fastapi import APIRouter, WebSocket
@@ -27,5 +28,11 @@ async def stream_session(websocket: WebSocket, session_id: str) -> None:
     buffered = session.buffered_output()
     if buffered:
         await websocket.send_bytes(buffered)
+
+    # Signal that the replay buffer (if any) has been fully sent.
+    # The frontend suppresses terminal.onData until this arrives so that
+    # DA1 responses triggered by replayed escape sequences are not forwarded
+    # back to the shell as unexpected stdin.
+    await websocket.send_text(json.dumps({"__ctrl__": "stream_ready"}))
 
     await run_bridge(websocket, session)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 
 from fastapi import WebSocket, WebSocketDisconnect
@@ -54,12 +55,22 @@ async def ws_to_pty(websocket: WebSocket, session: PtySession) -> None:
             break
 
 
+async def control_to_ws(websocket: WebSocket, session: PtySession) -> None:
+    while True:
+        try:
+            ctrl_msg = await session.control_queue.get()
+            await websocket.send_text(json.dumps(ctrl_msg))
+        except Exception:
+            break
+
+
 async def run_bridge(websocket: WebSocket, session: PtySession) -> None:
     reader = asyncio.create_task(pty_to_ws(websocket, session), name="pty_to_ws")
     writer = asyncio.create_task(ws_to_pty(websocket, session), name="ws_to_pty")
+    controller = asyncio.create_task(control_to_ws(websocket, session), name="control_to_ws")
 
     _done, pending = await asyncio.wait(
-        [reader, writer],
+        [reader, writer, controller],
         return_when=asyncio.FIRST_COMPLETED,
     )
 
